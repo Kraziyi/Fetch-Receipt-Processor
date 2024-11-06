@@ -1,0 +1,1 @@
+from .receipts import receipts_blueprint
