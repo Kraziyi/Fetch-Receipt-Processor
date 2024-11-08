@@ -1,20 +1,26 @@
 from datetime import datetime
 from math import ceil
 import uuid
+import hashlib
 from app.models import Receipt, Item
 
 receipt_db = {}
+points_cache = {}
 
 def calculate_points(receipt: Receipt) -> int:
+    receipt_hash = hash_receipt(receipt)
+    # If the calculation result for the hash is already in the cache, return it directly
+    if receipt_hash in points_cache:
+        return points_cache[receipt_hash]
+    
     points = 0
-
     retailer_name = receipt.retailer
     points += sum(1 for char in retailer_name if char.isalnum())
 
     total = receipt.total
     if total.is_integer():
         points += 50
-    if total % 0.25 == 0:
+    if (total * 100) % 25 == 0:
         points += 25
 
     items = receipt.items
@@ -42,21 +48,14 @@ def calculate_points(receipt: Receipt) -> int:
     except ValueError:
         pass
 
+    # Cache the calculation result
+    points_cache[receipt_hash] = points
+    
     return points
 
-
-def create_receipt(receipt_data):
-    items = [Item(item['short_description'], item['price']) for item in receipt_data['items']]
-    receipt = Receipt(
-        retailer=receipt_data['retailer'],
-        purchase_date=receipt_data['purchase_date'],
-        purchase_time=receipt_data['purchase_time'],
-        items=items,
-        total=receipt_data['total']
-    )
-    receipt_id = str(uuid.uuid4())
-    store_receipt(receipt_id, receipt)
-    return receipt_id
+def hash_receipt(receipt: Receipt) -> str:
+    receipt_str = str(receipt)
+    return hashlib.md5(receipt_str.encode('utf-8')).hexdigest()
 
 def create_receipt(receipt_data):
     items = [Item(item['short_description'], item['price']) for item in receipt_data['items']]

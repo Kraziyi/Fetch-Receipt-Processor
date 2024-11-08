@@ -1,5 +1,3 @@
-# tests/test_receipt_processing.py
-
 import unittest
 from app import create_app
 
