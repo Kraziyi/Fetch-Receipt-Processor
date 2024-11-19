@@ -19,6 +19,13 @@ class ReceiptSchema(Schema):
         except ValueError:
             raise ValidationError("purchase_date must be in YYYY-MM-DD format.")
         
+    @validates("purchase_time")
+    def validate_purchase_time(self, value):
+        try:
+            datetime.strptime(value, "%H:%M")
+        except ValueError:
+            raise ValidationError("purchase_time must be in HH:MM format.")
+
     @validates_schema
     def validate_total_sum(self, data, **kwargs):
         items_total = sum(item['price'] for item in data.get('items', []))

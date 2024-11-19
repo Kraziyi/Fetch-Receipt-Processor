@@ -66,7 +66,11 @@ def create_receipt(receipt_data):
         items=items,
         total=receipt_data['total']
     )
-    receipt_id = str(uuid.uuid4())
+    while True:
+        receipt_id = str(uuid.uuid4())
+        if receipt_id not in receipt_db:
+            break
+
     store_receipt(receipt_id, receipt)
     return receipt_id
 
